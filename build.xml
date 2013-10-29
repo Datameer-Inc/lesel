@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="Lesel" default="run" basedir=".">
+  <description>Large Scale Semi Supervised Learning</description>
+
+  <property file="build.properties" />
+  <path id="classpath">
+    <fileset dir="${lib.dir}" includes="*.jar"/>
+  </path>
+
+  <path id="classpath.test">
+    <pathelement location="${lib.dir}/junit-4.11.jar" />
+    <pathelement location="${test.classes.dir}" />
+    <pathelement location="${classes.dir}" />
+    <path refid="classpath" />
+  </path>
+
+
+    <!-- Cleanup -->
+  <target name="clean" description="Remove all files created by the build/test process.">
+    <delete dir="${classes.dir}" />
+    <delete dir="${test.classes.dir}" />
+    <delete dir="${dist.dir}" />
+  </target>
+
+    <!-- Compile application -->
+  <target name="compile" description="Compile sources.">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}" 
+       destdir="${classes.dir}" 
+       classpathref="classpath"
+       includeantruntime="false">
+    </javac>
+  </target>
+
+    <!-- Java Archive -->
+  <target name="jar" depends="compile" description="Compile all sources and create jar file.">
+    <!--<delete file="${jar.dir}/${app.name}-${app.version}.jar"/>-->
+    <delete dir="${jar.dir}"/>
+    <mkdir dir="${jar.dir}"/>
+    <jar destfile="${jar.dir}/${app.name}-${app.version}.jar" basedir="${classes.dir}">
+      <manifest>
+        <attribute name="Class-Path" value="/Users/urueckert/Desktop/lesel/lib"/>
+        <attribute name="Main-Class" value="datameer.lesel.generative.MixOfGaussians"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="run" depends="jar">
+        <java fork="true" classname="${main.class}">
+            <classpath>
+                <path refid="classpath"/>
+                <path location="${jar.dir}//${app.name}-${app.version}.jar"/>
+            </classpath>
+        </java>
+    </target>
+
+
+
+  <target name="compile-test" depends="compile" description="Compile product and test sources.">
+    <mkdir dir="${test.classes.dir}"/>
+    <javac srcdir="${test.dir}" destdir="${test.classes.dir}" includeantruntime="false">
+      <classpath refid="classpath.test"/>
+    </javac>
+  </target>
+  <target name="clean-compile-test">
+    <delete>
+      <fileset dir="${test.dir}" includes="**/*.class" />
+    </delete>
+  </target>
+
+  <target name="test" depends="compile-test" description="Compile and run tests.">
+    <junit printsummary="yes">
+      <classpath refid="classpath.test" />
+      <formatter type="brief" usefile="false" />
+      <batchtest fork="yes" todir="${reports.tests}">
+        <fileset dir="${test.dir}">
+          <include name="**/*Test.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+
+</project>
